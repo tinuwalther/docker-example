@@ -9,8 +9,8 @@ RUN echo "*** Build Image ***"
 RUN yum -y update && yum clean all
 RUN yum install git -y
 RUN yum install -y python3
-RUN yum install wget -y
-RUN yum install unzip -y
 RUN python3 -m pip install -U pip
 RUN python3 -m pip install pywinrm
+RUN python3 -m pip install pymongo
+COPY get-mongodbs.py /home/
 RUN echo "*** Build finished ***"
