@@ -1,0 +1,20 @@
+FROM centos:8
+LABEL os="CentOS 8"
+LABEL author="Martin Walther"
+LABEL content="PowerShell, PsNetTools"
+LABEL release-date="2021-04-03"
+LABEL version="0.0.1-beta"
+ENV container docker
+RUN echo "*** Build Image ***"
+RUN yum -y update && yum clean all
+RUN yum install git -y
+RUN yum install wget -y
+RUN yum install unzip -y
+RUN curl https://packages.microsoft.com/config/rhel/7/prod.repo | tee /etc/yum.repos.d/microsoft.repo
+RUN yum install powershell -y
+COPY PsNetTools.zip /tmp/
+RUN cd /tmp/
+RUN unzip /tmp/PsNetTools.zip -d /tmp/PsNetTools
+RUN mv /tmp/PsNetTools /opt/microsoft/powershell/7/Modules/PsNetTools
+RUN rm -f /tmp/PsNetTools.zip
+RUN echo "*** Build finished ***"

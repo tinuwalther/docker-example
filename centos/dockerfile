@@ -1,0 +1,10 @@
+FROM centos:8
+LABEL os="CentOS 8"
+LABEL author="Martin Walther"
+LABEL content="Only the OS"
+LABEL release-date="2021-04-03"
+LABEL version="0.0.1-beta"
+ENV container docker
+RUN echo "*** Build Image ***"
+RUN yum -y update && yum clean all
+RUN echo "*** Build finished ***"

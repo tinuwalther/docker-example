@@ -1,0 +1,12 @@
+---
+version: "3"
+services:
+  pshost:
+    image: scriptinghost
+    container_name: powershell-centos
+    hostname: pshost
+    exec: cd /tmp/
+    exec: wget https://github.com/tinuwalther/PsNetTools/releases/download/v0.7.65/PsNetTools.zip
+    exec: unzip /tmp/PsNetTools.zip -d /tmp/PsNetTools
+    exec: mv /tmp/PsNetTools /usr/local/share/powershell/Modules/PsNetTools
+    exec: rm -f /tmp/PsNetTools.zip
