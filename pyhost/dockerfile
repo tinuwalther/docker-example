@@ -12,5 +12,8 @@ RUN yum install -y python3
 RUN python3 -m pip install -U pip
 RUN python3 -m pip install pywinrm
 RUN python3 -m pip install pymongo
-COPY get-mongodbs.py /home/
+RUN mkdir /home/scripts/
+COPY get-mongodbs.py /home/scripts/
+COPY py-listener.py /home/scripts/
+COPY py-sender.py /home/scripts/
 RUN echo "*** Build finished ***"

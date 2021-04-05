@@ -14,7 +14,10 @@ RUN yum install -y python3
 RUN python3 -m pip install -U pip
 RUN python3 -m pip install pywinrm
 RUN python3 -m pip install pymongo
-COPY get-mongodbs.py /home/
+RUN mkdir /home/scripts/
+COPY get-mongodbs.py /home/scripts/
+COPY py-listener.py /home/scripts/
+COPY py-sender.py /home/scripts/
 RUN echo "*** Build finished ***"
 "@
 #endregion
@@ -85,7 +88,7 @@ function New-Dockerfile{
     Get-Item (Join-Path $Location 'dockerfile') | Select-Object Name,LastWriteTime,Length
 }
 
-function New-PythonHost{
+function New-PythonHostImage{
     <#
     .SYNOPSIS
         New-PythonHost
@@ -115,11 +118,22 @@ function New-PythonHost{
     }
     if(Test-Path "D:\docker\$($Name)"){
         Set-Location "D:\docker\$($Name)"; docker build -f "D:\docker\$($Name)\dockerfile" -t "$($Name):1.0.0" .
-        docker run -it --hostname $Name --name $Name -d "$($Name):1.0.0"
     }
 }
 
 New-MongoDBContainer -ContainerName mongodb -ImageName mongo
-New-PythonHost -Name pyhost -ContentName $pyhost
+New-PythonHostImage -Name pyhost -ContentName $pyhost
+
+# New PythonHost-Container1
+docker run -it --hostname pyhost1 --name pyhost1 -d pyhost:1.0.0
+$container = docker inspect pyhost1
+$object = $container | ConvertFrom-Json
+$object | Select-Object Name, @{l="IPAddress";e={$object.NetworkSettings.IPAddress}}
+
+# New PythonHost-Container2
+docker run -it --hostname pyhost2 --name pyhost2 -d pyhost:1.0.0
+$container = docker inspect pyhost2
+$object = $container | ConvertFrom-Json
+$object | Select-Object Name, @{l="IPAddress";e={$object.NetworkSettings.IPAddress}}
 
 docker ps -s

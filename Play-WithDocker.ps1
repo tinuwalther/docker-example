@@ -36,7 +36,7 @@ docker run -v fileshare:/shared-volume --hostname pshost1 --name pshost1  -it ps
 docker run -it -v fileshare:/shared-volume --hostname pyhost1 --name pyhost1 -d pyhost:1.0.0
 docker run -it -v fileshare:/shared-volume --hostname pyhost2 --name pyhost2 -d pyhost:1.0.0
 
-docker ps
+docker ps -s
 #endregion
 
 #region start a container
