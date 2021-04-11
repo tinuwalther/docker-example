@@ -42,7 +42,7 @@ class colors:
         cyan      = '\033[46m'
         lightgrey = '\033[47m'
 
-def srfnewsreader(url, links=True, images=True, emphasis=True):
+def srfnewsreader(url, searchfrom, searchto, links=True, images=True, emphasis=True):
     '''Reads the given url and print a markdown'''
     import requests, html2text, re
     from datetime import datetime
@@ -60,8 +60,8 @@ def srfnewsreader(url, links=True, images=True, emphasis=True):
         data  = md.handle(html)
 
         #read from '###  Neueste Beiträge'
-        start = data.find('###  Neueste Beiträge')
-        end   = data.find('## Footer')
+        start = data.find(searchfrom)
+        end   = data.find(searchto)
         stream = [(data[start:end])]
         for i in stream:
             if(i is not None):
@@ -123,9 +123,11 @@ try:
             recived = buf.decode('utf-8')
             print(recived)
             if re.search("srf", recived):
-              srfnewsreader('https://www.srf.ch/news/neuste-beitraege', False, False)
+              srfnewsreader('https://www.srf.ch/news/neuste-beitraege', '###  Neueste Beiträge','## Footer', False, False)
             elif re.search("covid", recived):
               covidnewsreader('https://www.covid19.admin.ch/de/overview', False, False)
+            elif re.search("wetter", recived):
+              srfnewsreader('https://www.srf.ch/meteo/wetterbericht', '#  Wetterbericht','## Footer', False, False)
 
 except KeyboardInterrupt:
     serversocket.close()

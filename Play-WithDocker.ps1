@@ -36,24 +36,32 @@ docker run -v fileshare:/shared-volume --hostname pshost1 --name pshost1  -it ps
 docker run -it -v fileshare:/shared-volume --hostname pyhost1 --name pyhost1 -d pyhost:1.0.0
 docker run -it -v fileshare:/shared-volume --hostname pyhost2 --name pyhost2 -d pyhost:1.0.0
 
+# create container with user-defined-network-bridge
+docker run -it --network custom --hostname pyhost1 --name pyhost1 -d pyhost:1.0.0
+docker run -it --network custom --hostname pyhost2 --name pyhost2 -d pyhost:1.0.0
+docker network inspect custom
+
 docker ps -s
 #endregion
 
 #region start a container
 docker start centos8
 docker start pyhost1
+docker start pyhost2
 docker start pshost1
 #endregion
 
 #region stop container
 docker stop centos8
 docker stop pyhost1
+docker stop pyhost2
 docker stop pshost1
 #endregion
 
 #region attach bash or powershell to a running container
 docker exec -it centos8  /bin/bash
 docker exec -it pyhost1 /bin/bash
+docker exec -it pyhost2 /bin/bash
 docker exec -it pshost1 pwsh
 #endregion
 
