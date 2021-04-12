@@ -1,3 +1,4 @@
+# Define colors
 class colors: 
     '''Colors class:reset all colors with colors.reset'''
     reset         = '\033[0m'
@@ -42,9 +43,11 @@ class colors:
         lightgrey = '\033[47m'
 
 # Listener: Clientside
-import os, sys, socket
+import os, sys, getopt, socket
 
+# Show a detailed help like in powershell
 def usage():
+  import os, sys, getopt
   '''Show a detailed help like in powershell'''
   print(f"\nNAME")
   print(f"    {os.path.basename(str(sys.argv[0]))}\n\n")
@@ -53,46 +56,58 @@ def usage():
   print(f"    Send a message to the listener\n\n")
 
   print("SYNTAX")
-  print(f"    python3 {str(sys.argv[0])} <listener> <message>\n\n")
+  print(f"    python3 {str(sys.argv[0])} -l <listener> -m <message>\n\n")
 
   print("DESCRIPTION")
   print(f"    Send a message to the listener, the listener run a command based on the message\n\n")
 
   print("PARAMETERS")
-  print(f"    listener name or ip address\n\n")
+  print(f"    -l listener name or ip address\n\n")
 
   print("PARAMETERS")
-  print(f"    keyword of the message to send: srf, wetter or covid\n\n")
+  print(f"    -m keyword of the message to send: srf, wetter or covid are active\n\n")
 
   print(f"    -------------------------- EXAMPLE 1 --------------------------\n")
-  print(f"    python3 {str(sys.argv[0])} pyhost1 wetter\n\n")
+  print(f"    python3 {str(sys.argv[0])} -l pyhost1 -m wetter\n\n")
 
   print(f"    -------------------------- EXAMPLE 2 --------------------------\n")
-  print(f"    python3 {str(sys.argv[0])} pyhost1 srf\n\n")
+  print(f"    python3 {str(sys.argv[0])} -l pyhost1 -m srf\n\n")
 
   print(f"    -------------------------- EXAMPLE 3 --------------------------\n")
-  print(f"    python3 {str(sys.argv[0])} pyhost1 covid\n\n")
+  print(f"    python3 {str(sys.argv[0])} -l pyhost1 -m covid\n\n")
 
+# Define the main function
+def main(argv):
+  '''main function'''
+  try:
+    recipient = ''; message = ''
 
-try:
-  recipient = ''
-  message = ''
-  if len(sys.argv) == 1 or len(sys.argv) > 3:
-    recipient = ''
-    message = ''
-  elif len(sys.argv) == 3:
-    recipient = str(sys.argv[1])
-    message = str(sys.argv[2])
+    opts, args = getopt.getopt(argv, "l:m:", ['help:h'])
+    if not opts:
+      usage()
 
-  if len(recipient) == 0 or len(message) == 0 or recipient == 'help':
-    usage()
-  else:
-    clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    clientsocket.connect((recipient, 8089))
-    clientsocket.send(bytes(socket.gethostname() + ': ' + message , 'UTF-8'))
+    for opt, arg in opts:
+      if opt in ['-l']:
+        recipient = arg
+      elif opt in ['-m']:
+        message = arg
+      elif opt in ('-h', '--help', 'help'):
+        usage()
 
-except Exception as e:
-  if e.args[0] == 111:
-    print('{0}{1}{2}{3}'.format(colors.fg.cyan, "[INFO] [" + recipient + "] ", e.args[1], colors.reset))
-  else:
-    print('{0}{1}{2}{3}'.format(colors.fg.orange, "[WARN] [" + recipient + "] ", e, colors.reset))
+    if len(recipient) > 0 and len(message) > 0:
+      clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+      clientsocket.connect((recipient, 8089))
+      clientsocket.send(bytes(socket.gethostname() + ': ' + message , 'UTF-8'))
+
+  except getopt.GetoptError:
+      usage()
+
+  except Exception as e:
+    if e.args[0] == 111:
+      print('{0}{1}{2}{3}'.format(colors.fg.cyan, "[INFO] [" + recipient + "] ", e.args[1], colors.reset))
+    else:
+      print('{0}{1}{2}{3}'.format(colors.fg.orange, "[WARN] [" + recipient + "] ", e, colors.reset))
+
+# Call the main function
+if __name__ =='__main__':
+    main(sys.argv[1:])

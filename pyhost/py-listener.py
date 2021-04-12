@@ -1,4 +1,4 @@
-# Actions to run
+# Define colors
 class colors: 
     '''Colors class:reset all colors with colors.reset'''
     reset         = '\033[0m'
@@ -42,10 +42,50 @@ class colors:
         cyan      = '\033[46m'
         lightgrey = '\033[47m'
 
+# Listener: Serverside
+import os, sys, getopt, socket, requests, html2text, re
+from datetime import datetime
+
+# Show a detailed help like in powershell
+def usage():
+  import os, sys, getopt
+  '''Show a detailed help like in powershell'''
+  print(f"\nNAME")
+  print(f"    {os.path.basename(str(sys.argv[0]))}\n\n")
+
+  print("SYNOPSIS")
+  print(f"    Listen for a message from a sender\n\n")
+
+  print("SYNTAX")
+  print(f"    python3 {str(sys.argv[0])} -s <sender> -p <port> -c <max. connections>\n\n")
+
+  print("DESCRIPTION")
+  print(f"    Listen for a message from a sender, the listener run a command based on the message\n\n")
+
+  print("PARAMETERS")
+  print(f"    -s sender name or ip address\n\n")
+
+  print("PARAMETERS")
+  print(f"    -p TCP port to listen\n\n")
+
+  print("PARAMETERS")
+  print(f"    -c max. allowed connections\n\n")
+
+  print(f"    -------------------------- EXAMPLE 1 --------------------------\n")
+  print(f"    python3 {str(sys.argv[0])}\n\n")
+
+  print(f"    -------------------------- EXAMPLE 2 --------------------------\n")
+  print(f"    python3 {str(sys.argv[0])} -s pyhost1\n\n")
+
+  print(f"    -------------------------- EXAMPLE 3 --------------------------\n")
+  print(f"    python3 {str(sys.argv[0])} -s pyhost1 -p 8089\n\n")
+
+  print(f"    -------------------------- EXAMPLE 4 --------------------------\n")
+  print(f"    python3 {str(sys.argv[0])} -s pyhost1 -p 8089 -c 5\n\n")
+
+# Newsreader functions
 def srfnewsreader(url, searchfrom, searchto, links=True, images=True, emphasis=True):
     '''Reads the given url and print a markdown'''
-    import requests, html2text, re
-    from datetime import datetime
     now = datetime.now()
 
     response = requests.get(url)
@@ -75,8 +115,6 @@ def srfnewsreader(url, searchfrom, searchto, links=True, images=True, emphasis=T
 
 def covidnewsreader(url, links=True, images=True, emphasis=True):
     '''Reads the given url and print a markdown'''
-    import requests, html2text, re
-    from datetime import datetime
     now = datetime.now()
 
     response = requests.get(url)
@@ -105,31 +143,61 @@ def covidnewsreader(url, links=True, images=True, emphasis=True):
 
         print(colors.bold + colors.fg.blue +'END'+ colors.reset)
 
-# Listener: Serverside
-import socket, re
+# Start the listener
+def start(HOST, PORT, connections):
+  '''Start the listener'''
+  #HOST = '' # if this is an empty string, then I can listen for any ip addresses not only localhost
+  serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+  serversocket.bind((HOST, PORT))
+  serversocket.listen(connections) # become a server socket, maximum 5 connections
 
-HOST = '' # if this is an empty string, then I can listen for any ip addresses not only localhost
-PORT = 8089
-
-serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-serversocket.bind((HOST, PORT))
-serversocket.listen(5) # become a server socket, maximum 5 connections
-
-try:
+  try:
+    if HOST == '':
+        print(f'Listen for any address on {PORT}')
+    else:
+        print(f'Listen for {HOST} on {PORT}')
+    
     while True:
-        connection, address = serversocket.accept()
-        buf = connection.recv(64)
-        if len(buf) > 0:
-            recived = buf.decode('utf-8')
-            print(recived)
-            if re.search("srf", recived):
-              srfnewsreader('https://www.srf.ch/news/neuste-beitraege', '###  Neueste Beiträge','## Footer', False, False)
-            elif re.search("covid", recived):
-              covidnewsreader('https://www.covid19.admin.ch/de/overview', False, False)
-            elif re.search("wetter", recived):
-              srfnewsreader('https://www.srf.ch/meteo/wetterbericht', '#  Wetterbericht','## Footer', False, False)
+      connection, address = serversocket.accept()
+      buf = connection.recv(64)
+      if len(buf) > 0:
+        recived = buf.decode('utf-8')
+        print(recived)
+      if re.search("srf", recived):
+        srfnewsreader('https://www.srf.ch/news/neuste-beitraege', '###  Neueste Beiträge','## Footer', False, False)
+      elif re.search("covid", recived):
+        covidnewsreader('https://www.covid19.admin.ch/de/overview', False, False)
+      elif re.search("wetter", recived):
+        srfnewsreader('https://www.srf.ch/meteo/wetterbericht', '#  Wetterbericht','## Footer', False, False)
 
-except KeyboardInterrupt:
-    serversocket.close()
-    print(' received, shutting down the listener')
-    serversocket.close()
+  except KeyboardInterrupt:
+        serversocket.close()
+        print(' received, shutting down the listener')
+        serversocket.close()
+
+# Define the main function
+def main(argv):
+  '''main function'''
+  try:
+    sender = ''; port = 8089; connections = 5
+    opts, args = getopt.getopt(argv, "s:p:c:", ['help:h'])
+
+    for opt, arg in opts:
+      if opt in ['-s']:
+        sender = arg
+      elif opt in ['-p']:
+        port = arg
+      elif opt in ['-c']:
+        connections = arg
+      elif opt in ('-h', '--help', 'help'):
+        usage()
+        break
+    
+    start(sender, port, connections)
+
+  except getopt.GetoptError:
+      usage()
+
+# Call the main function
+if __name__ =='__main__':
+    main(sys.argv[1:])
