@@ -42,18 +42,21 @@ docker ps -s
 #region start a container
 docker start centos8
 docker start pyhost1
+docker start pyhost2
 docker start pshost1
 #endregion
 
 #region stop container
 docker stop centos8
 docker stop pyhost1
+docker stop pyhost2
 docker stop pshost1
 #endregion
 
 #region attach bash or powershell to a running container
 docker exec -it centos8  /bin/bash
 docker exec -it pyhost1 /bin/bash
+docker exec -it pyhost2 /bin/bash
 docker exec -it pshost1 pwsh
 #endregion
 
