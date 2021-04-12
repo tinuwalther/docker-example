@@ -42,10 +42,41 @@ class colors:
         lightgrey = '\033[47m'
 
 # Listener: Clientside
-import sys, socket
+import os, sys, socket
+
+def usage():
+  '''Show a detailed help like in powershell'''
+  print(f"\nNAME")
+  print(f"    {os.path.basename(str(sys.argv[0]))}\n\n")
+
+  print("SYNOPSIS")
+  print(f"    Send a message to the listener\n\n")
+
+  print("SYNTAX")
+  print(f"    python3 {str(sys.argv[0])} <listener> <message>\n\n")
+
+  print("DESCRIPTION")
+  print(f"    Send a message to the listener, the listener run a command based on the message\n\n")
+
+  print("PARAMETERS")
+  print(f"    listener name or ip address\n\n")
+
+  print("PARAMETERS")
+  print(f"    keyword of the message to send: srf, wetter or covid\n\n")
+
+  print(f"    -------------------------- EXAMPLE 1 --------------------------\n")
+  print(f"    python3 {str(sys.argv[0])} pyhost1 wetter\n\n")
+
+  print(f"    -------------------------- EXAMPLE 2 --------------------------\n")
+  print(f"    python3 {str(sys.argv[0])} pyhost1 srf\n\n")
+
+  print(f"    -------------------------- EXAMPLE 3 --------------------------\n")
+  print(f"    python3 {str(sys.argv[0])} pyhost1 covid\n\n")
+
 
 try:
-
+  recipient = ''
+  message = ''
   if len(sys.argv) == 1 or len(sys.argv) > 3:
     recipient = ''
     message = ''
@@ -53,10 +84,8 @@ try:
     recipient = str(sys.argv[1])
     message = str(sys.argv[2])
 
-  if len(recipient) == 0 or len(message) == 0 or recipient == '--help':
-    print('Usage: python3 ' + str(sys.argv[0]) + ' <argument>')
-    print('  Argument: hostname or ip-address to send a message')
-    print('  Example:  172.17.0.2 "Send message from me"')
+  if len(recipient) == 0 or len(message) == 0 or recipient == 'help':
+    usage()
   else:
     clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     clientsocket.connect((recipient, 8089))
