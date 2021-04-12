@@ -36,6 +36,11 @@ docker run -v fileshare:/shared-volume --hostname pshost1 --name pshost1  -it ps
 docker run -it -v fileshare:/shared-volume --hostname pyhost1 --name pyhost1 -d pyhost:1.0.0
 docker run -it -v fileshare:/shared-volume --hostname pyhost2 --name pyhost2 -d pyhost:1.0.0
 
+# create container with user-defined-network-bridge
+docker run -it --network custom --hostname pyhost1 --name pyhost1 -d pyhost:1.0.0
+docker run -it --network custom --hostname pyhost2 --name pyhost2 -d pyhost:1.0.0
+docker network inspect custom
+
 docker ps -s
 #endregion
 
