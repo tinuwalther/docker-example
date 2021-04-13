@@ -1,3 +1,11 @@
+#region MSSQL Server
+
+# <-- download image -->
+docker pull mcr.microsoft.com/mssql/server:2019-latest
+docker tag mcr.microsoft.com/mssql/server:2019-latest mssql:2019-latest
+docker rmi mcr.microsoft.com/mssql/server:2019-latest
+docker images -a
+#endregion
 
 #region Build images from dockerfiles
 
