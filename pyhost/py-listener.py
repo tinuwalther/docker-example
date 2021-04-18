@@ -42,10 +42,6 @@ class colors:
         cyan      = '\033[46m'
         lightgrey = '\033[47m'
 
-# Listener: Serverside
-import os, sys, getopt, socket, requests, html2text, re
-from datetime import datetime
-
 # Show a detailed help like in powershell
 def usage():
   import os, sys, getopt
@@ -84,64 +80,65 @@ def usage():
   print(f"    python3 {str(sys.argv[0])} -s pyhost1 -p 8089 -c 5\n\n")
 
 # Newsreader functions
-def srfnewsreader(url, searchfrom, searchto, links=True, images=True, emphasis=True):
+def srfnewsreader(url, search_from, search_to, links=True, images=True, emphasis=True):
     '''Reads the given url and print a markdown'''
     now = datetime.now()
-
     response = requests.get(url)
     if(response.status_code == 200):
-        print(colors.bold + colors.fg.blue +'{2}{0}'.format('\n', '>' * 80, f'NEWS FROM: {url}', '<' * 80, now.strftime("%Y-%m-%d %H:%M:%S")) + colors.reset)
-        html = response.content.decode('utf-8')
+        site = url.split('/')[2]
+        print(colors.bold + colors.fg.blue +'{1}{0}{4} {2}{0}{3}{0}'.format('\n', '>' * 68, f'NEWS FROM: {site}', '<' * 68, now.strftime("%Y-%m-%d %H:%M:%S")) + colors.reset)
+        html_content = response.content.decode('utf-8')
+        # Format to markdown
         md = html2text.HTML2Text()
         md.ignore_links    = not links
         md.ignore_images   = not images
         md.ignore_emphasis = not emphasis
-        md.body_width      = 100
-        data  = md.handle(html)
-
-        #read from '###  Neueste Beiträge'
-        start = data.find(searchfrom)
-        end   = data.find(searchto)
-        stream = [(data[start:end])]
+        md.body_width      = 68
+        md_data            = md.handle(html_content)
+        #read from start-pattern to end-pattern
+        start = md_data.find(search_from)
+        end   = md_data.find(search_to)
+        stream = [(md_data[start:end])]
         for i in stream:
             if(i is not None):
-                line = i.replace('Mit Video\n\n','').replace('Mit Audio\n\n','')
-                if str.startswith(line, '*'):
-                    print('{0}{1}{2}'.format(colors.fg.lightred, line, colors.reset))
-                else:
-                    print('{0}{1}{2}'.format(colors.fg.green, line, colors.reset))
+                line = i
+                line = line.replace('Mit Video\n\n','')
+                line = line.replace('Mit Audio\n\n','')
+                line = line.replace('###  Neueste Beiträge\n\n','')
+                line = line.replace('  * ','### ')
+                print('{0}{1}{2}'.format(colors.fg.green, line, colors.reset))
 
         print(colors.bold + colors.fg.blue +'END'+ colors.reset)
 
-def covidnewsreader(url, links=True, images=True, emphasis=True):
+def covidnewsreader(url, search_from, search_to, links=True, images=True, emphasis=True):
     '''Reads the given url and print a markdown'''
-    now = datetime.now()
-
     response = requests.get(url)
     if(response.status_code == 200):
-        print(colors.bold + colors.fg.blue +'{2}{0}'.format('\n', '>' * 80, f'NEWS FROM: {url}', '<' * 80, now.strftime("%Y-%m-%d %H:%M:%S")) + colors.reset)
-        html = response.content.decode('utf-8')
+        html_content = response.content.decode('utf-8')
+        # Format to markdown
         md = html2text.HTML2Text()
         md.ignore_links    = not links
         md.ignore_images   = not images
         md.ignore_emphasis = not emphasis
-        md.body_width      = 100
-        data  = md.handle(html)
-
-        #read from '### Laborbestätigte'
-        start = data.find('### Laborbestätigte Fälle')
-        end   = data.find('### Tests und Anteil positive Tests')
-        stream = [(data[start:end])]
+        md.body_width      = 68
+        md_data            = md.handle(html_content)
+        #read from start-pattern to end-pattern
+        start = md_data.find(search_from)
+        end   = md_data.find(search_to)
+        stream = [(md_data[start:end])]
         for i in stream:
             if(i is not None):
-                line = i.replace('Detailinformationen\n\n','')
+                line = i
+                line = line.replace('\n---|--- ','')
+                line = line.replace('| ', ': ')
+                line = line.replace('Detailinformationen\n\n','')
                 line = line.replace('7-⁠Tage-⁠Schnitt\n\n','')
                 line = line.replace('Beschreibungen einblenden\n\n','')
                 line = line.replace('Neu gemeldet\n\n','')
                 line = line.replace('\nFälle\n','')
-                print('{0}{1}{2}'.format(colors.fg.green, line, colors.reset))
+                #print('{0}{1}{2}'.format(colors.fg.green, line, colors.reset))
 
-        print(colors.bold + colors.fg.blue +'END'+ colors.reset)
+    return stream
 
 # Start the listener
 def start(HOST, PORT, connections):
@@ -166,13 +163,49 @@ def start(HOST, PORT, connections):
       if re.search("srf", recived):
         srfnewsreader('https://www.srf.ch/news/neuste-beitraege', '###  Neueste Beiträge','## Footer', False, False)
       elif re.search("covid", recived):
-        covidnewsreader('https://www.covid19.admin.ch/de/overview', False, False)
+        site = 'www.covid19.admin.ch'
+        now  = datetime.now()
+        print(colors.bold + colors.fg.blue +'{1}{0}{4} {2}{0}{3}{0}'.format('\n', '>' * 68, f'NEWS FROM: {site}', '<' * 68, now.strftime("%Y-%m-%d %H:%M:%S")) + colors.reset)
+        
+        ### Get data from www.covid19.admin.ch
+        data = covidnewsreader('https://www.covid19.admin.ch/de/overview?ovTime=total', '### Laborbestätigte Fälle', '### Laborbestätigte Hospitalisationen', False, False)
+        for line in data:
+          if(line is not None):
+              Datum      = (re.findall('\w+\:\s\d{2}\.\d{2}\.\d{4}',line)[0]).replace('Stand: ','')
+              Fälle      = int((re.findall('[A-Z][a-z]+\|\s\d{2,}',line)[0]).replace('Vortag| ',''))
+              TotalFälle = int(((re.findall('Total seit 24.02.2020+\|\s\d{1,}\s\d{1,}',line)[0]).split('| ')[1]).replace(' ',''))
+              break
+        
+        data = covidnewsreader('https://www.covid19.admin.ch/de/overview?ovTime=total', '### Laborbestätigte Hospitalisationen', '### Laborbestätigte Todesfälle', False, False)
+        for line in data:
+          if(line is not None):
+              Hospitalisationen = int((re.findall('[A-Z][a-z]+\|\s\d{2,}',line)[0]).replace('Vortag| ',''))
+              TotalHosp         = int(((re.findall('Total seit 24.02.2020+\|\s\d{1,}\s\d{1,}',line)[0]).split('| ')[1]).replace(' ',''))
+              break
+        
+        data = covidnewsreader('https://www.covid19.admin.ch/de/overview?ovTime=total', '### Laborbestätigte Todesfälle', '### Tests und Anteil positive Tests', False, False)
+        for line in data:
+            if(line is not None):
+              Todesfälle = int((re.findall('[A-Z][a-z]+\|\s\d{1,}',line)[0]).replace('Vortag| ',''))
+              TotalDead  = int(((re.findall('Total seit 24.02.2020+\|\s\d{1,}',line)[0]).split('| ')[1]))
+              break
+
+        ### Print data frame set as table
+        locale.setlocale(locale.LC_ALL, 'de_CH.utf-8')
+        dict_data = {
+          'Laborbestätigte'      : ['Neue Fälle', 'Hospitalisationen', 'Todesfälle'],
+          f'Neu seit {Datum}'    : [locale.format_string('%d', Fälle, 1), locale.format_string('%d', Hospitalisationen, 1), locale.format_string('%d', Todesfälle, 1)],
+          'Total seit 24.02.2020': [locale.format_string('%d', TotalFälle, 1), locale.format_string('%d', TotalHosp, 1), locale.format_string('%d', TotalDead, 1)]
+        }
+        table = pd.DataFrame(data = dict_data)
+        print('{0}{1}{2}'.format(colors.fg.green, table, colors.reset))
+        print('\n{0}{1}\n{2}ENDE{2}\n{1}{3}'.format(colors.bold + colors.fg.blue, '-' * 68, ' ' * 32, colors.reset))
       elif re.search("wetter", recived):
         srfnewsreader('https://www.srf.ch/meteo/wetterbericht', '#  Wetterbericht','## Footer', False, False)
 
   except KeyboardInterrupt:
         serversocket.close()
-        print(' received, shutting down the listener')
+        print(' (Ctrl. + C) received, shutting down the listener')
         serversocket.close()
 
 # Define the main function
@@ -199,5 +232,10 @@ def main(argv):
       usage()
 
 # Call the main function
+import os, sys, getopt, socket
+import locale, requests, html2text, re
+import pandas as pd
+from datetime import datetime
+
 if __name__ =='__main__':
     main(sys.argv[1:])
