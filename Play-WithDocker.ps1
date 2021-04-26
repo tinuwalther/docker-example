@@ -1,3 +1,44 @@
+#region Windows
+https://hub.docker.com/search?q=windows&type=image
+
+# <-- 1. configure environment -->
+Enable-WindowsOptionalFeature -Online -FeatureName $("Microsoft-Hyper-V", "Containers") -All
+
+# <-- 2. switch docker to windows -->
+& $env:ProgramFiles\Docker\Docker\DockerCli.exe -SwitchDaemon .
+
+# <-- 3. download image, 1.718GB -->
+docker pull mcr.microsoft.com/windows/servercore:ltsc2019
+docker tag mcr.microsoft.com/windows/servercore:ltsc2019 winsrvc:ltsc2019
+docker rmi mcr.microsoft.com/windows/servercore:ltsc2019
+docker images -a
+
+REPOSITORY   TAG        IMAGE ID       CREATED       SIZE
+winsrvc      ltsc2019   152749f71f8f   2 weeks ago   5.27GB
+
+# <-- 4. Create a container -->
+docker run -it --network nat --hostname winsrv1 --name winsrv1 -d winsrvc:ltsc2019
+docker run -it --network nat --hostname winsrv2 --name winsrv2 -d winsrvc:ltsc2019
+docker ps -s
+
+# <-- 5. Run a container -->
+docker exec -it winsrv1 powershell
+docker exec -it winsrv2 powershell
+
+docker start winsrv1
+docker start winsrv2
+
+docker stop winsrv1
+docker stop winsrv2
+
+#endregion
+
+#region Linux
+REPOSITORY   TAG           IMAGE ID       CREATED       SIZE
+pyhost       1.0.0         45fe1fb26c44   13 days ago   473MB
+centos8      1.0.0         d4b86e62ff37   3 weeks ago   285MB
+mongo        latest        f03be0dc25f8   4 weeks ago   448MB
+
 #region MSSQL Server
 
 # <-- download image -->
@@ -5,6 +46,10 @@ docker pull mcr.microsoft.com/mssql/server:2019-latest
 docker tag mcr.microsoft.com/mssql/server:2019-latest mssql:2019-latest
 docker rmi mcr.microsoft.com/mssql/server:2019-latest
 docker images -a
+
+REPOSITORY   TAG           IMAGE ID       CREATED       SIZE
+mssql        2019-latest   62c72d863950   3 weeks ago   1.49GB
+
 #endregion
 
 #region Build images from dockerfiles
@@ -90,4 +135,6 @@ docker images -a
 docker tag CURRENT_IMAGE_NAME DESIRED_IMAGE_NAME
 docker tag local/pyscripthost:1.0.0 pyhost:1.0.0
 docker rmi local/pyscripthost:1.0.0
+#endregion
+
 #endregion
