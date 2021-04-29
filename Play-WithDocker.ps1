@@ -90,6 +90,7 @@ docker run -it -v fileshare:/shared-volume --hostname pyhost1 --name pyhost1 -d 
 docker run -it -v fileshare:/shared-volume --hostname pyhost2 --name pyhost2 -d pyhost:1.0.0
 
 # create container with user-defined-network-bridge
+docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=yourStrong(!)Password' -p 1433:1433 --network custom --hostname mssqlsrv1 --name mssqlsrv1 -d mssql:2019-latest
 docker run -it --network custom --hostname pyhost1 --name pyhost1 -d pyhost:1.0.0
 docker run -it --network custom --hostname pyhost2 --name pyhost2 -d pyhost:1.0.0
 docker network inspect custom
@@ -98,6 +99,7 @@ docker ps -s
 #endregion
 
 #region start a container
+docker start mssqlsrv1
 docker start centos8
 docker start pyhost1
 docker start pyhost2
@@ -105,6 +107,7 @@ docker start pshost1
 #endregion
 
 #region stop container
+docker stop mssqlsrv1
 docker stop centos8
 docker stop pyhost1
 docker stop pyhost2
@@ -112,9 +115,11 @@ docker stop pshost1
 #endregion
 
 #region attach bash or powershell to a running container
+docker exec -it mssqlsrv1 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'yourStrong(!)Password'
 docker exec -it centos8  /bin/bash
 docker exec -it pyhost1 /bin/bash
 docker exec -it pyhost2 /bin/bash
+docker exec -it mssqlsrv1 /bin/bash
 docker exec -it pshost1 pwsh
 #endregion
 
