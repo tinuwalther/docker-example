@@ -42,6 +42,7 @@ mongo        latest        f03be0dc25f8   4 weeks ago   448MB
 #region MSSQL Server
 
 # <-- download image -->
+docker pull alpine
 docker pull mcr.microsoft.com/mssql/server:2019-latest
 docker tag mcr.microsoft.com/mssql/server:2019-latest mssql:2019-latest
 docker rmi mcr.microsoft.com/mssql/server:2019-latest
@@ -78,6 +79,7 @@ docker volume create fileshare
 docker volume inspect fileshare
 docker volume ls
 docker rm fileshare
+docker volume create sqldata
 docker volume prune
 #endregion
 
@@ -90,7 +92,8 @@ docker run -it -v fileshare:/shared-volume --hostname pyhost1 --name pyhost1 -d 
 docker run -it -v fileshare:/shared-volume --hostname pyhost2 --name pyhost2 -d pyhost:1.0.0
 
 # create container with user-defined-network-bridge
-docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=yourStrong(!)Password' -p 1433:1433 --network custom --hostname mssqlsrv1 --name mssqlsrv1 -d mssql:2019-latest
+docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=yourStrong(!)Password' -p 1433:1433 -v sqldata:/var/opt/mssql --hostname mssqlsrv1 --name mssqlsrv1 --network custom -d mssql:2019-latest
+
 docker run -it --network custom --hostname pyhost1 --name pyhost1 -d pyhost:1.0.0
 docker run -it --network custom --hostname pyhost2 --name pyhost2 -d pyhost:1.0.0
 docker network inspect custom
