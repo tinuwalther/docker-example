@@ -1,0 +1,6 @@
+FROM alpine
+RUN echo "*** Build Image ***"
+RUN apk update && apk add --no-cache dumb-init xz tar zstd
+COPY volume-backup.sh /
+ENTRYPOINT [ "/usr/bin/dumb-init", "--", "/volume-backup.sh" ]
+RUN echo "*** Build finished ***"
