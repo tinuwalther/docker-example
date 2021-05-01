@@ -78,11 +78,38 @@ docker ps -a
 
 # <-- run sqlcmd on container -->
 docker exec -it mssqlsrv1 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'yourStrong(!)Password'
+EXEC sp_databases;
+
 
 # <-- start, stop, remove container -->
 docker start mssqlsrv1
 docker stop mssqlsrv1
 docker rm mssqlsrv1
+
+#endregion
+
+#region mongodb
+$volume = foreach($item in (docker volume ls)){
+    if($item -match 'local\s+mongodata$'){
+        $true; break
+    }
+}
+if(-not($volume)){
+    docker volume create mongodata
+}
+$volume = foreach($item in (docker volume ls)){
+    if($item -match 'local\s+mongoconf$'){
+        $true; break
+    }
+}
+if(-not($volume)){
+    docker volume create mongoconf
+}
+
+docker pull mongo
+docker run -it -p 27017:27017 -v mongodata:/data/db -v mongoconf:/data/configdb --name mongodb1 --hostname mongodb1 --network custom -d mongo
+
+Invoke-WebRequest -URI http://localhost:27017 | Select Status*,Content
 
 #endregion
 
@@ -115,7 +142,7 @@ $volume = foreach($item in (docker volume ls)){
     }
 }
 if(-not($volume)){
-    docker volume create fileshare
+    docker volume create mongod
 }
 
 # <-- backup volume -->
@@ -136,6 +163,12 @@ docker exec -it mssqlsrv1 /bin/bash
 #restore
 docker run -v [volume-name]:/volume -v [output-dir]:/backup --rm loomchild/volume-backup restore [archive-name]
 docker run -v sqldata:/volume -v /tmp:/backup --rm loomchild/volume-backup restore some_archive
+
+docker run -d --name access_volume --volume hello:/sqldata busybox
+docker cp access_volume:/sqldata local-data
+# modify local-data
+docker cp local-data access_volume:/sqldata
+
 
 docker rm fileshare
 docker volume prune

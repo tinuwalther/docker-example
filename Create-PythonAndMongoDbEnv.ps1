@@ -47,8 +47,26 @@ function New-MongoDBContainer{
         [Parameter(Mandatory=$true)]
         [String] $ImageName
     )
+
+    $volume = foreach($item in (docker volume ls)){
+        if($item -match 'local\s+mongodata$'){
+            $true; break
+        }
+    }
+    if(-not($volume)){
+        docker volume create mongodata
+    }
+    $volume = foreach($item in (docker volume ls)){
+        if($item -match 'local\s+mongoconf$'){
+            $true; break
+        }
+    }
+    if(-not($volume)){
+        docker volume create mongoconf
+    }
+
     docker pull $ImageName
-    docker run -it --name $ContainerName -d $ImageName
+    docker run -it -v mongodata:/data/db -v mongoconf:/data/configdb --name "$($ContainerName)1" --hostname "$($ContainerName)1" --network custom -d $ImageName
     $container = docker inspect $ContainerName
     $object = $container | ConvertFrom-Json
     $object | Select-Object Name, @{l="IPAddress";e={$object.NetworkSettings.IPAddress}}
