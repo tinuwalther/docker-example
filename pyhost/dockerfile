@@ -7,11 +7,15 @@ LABEL version="0.0.1-beta"
 ENV container docker
 RUN echo "*** Build Image ***"
 RUN yum -y update && yum clean all
+RUN yum install bind-utils -y
+RUN dnf install glibc-langpack-de -y
 RUN yum install git -y
 RUN yum install -y python3
 RUN python3 -m pip install -U pip
 RUN python3 -m pip install pywinrm
 RUN python3 -m pip install pymongo
+RUN python3 -m pip install pandas
+RUN python3 -m pip install html2text
 RUN mkdir /home/scripts/
 COPY get-mongodbs.py /home/scripts/
 COPY py-listener.py /home/scripts/

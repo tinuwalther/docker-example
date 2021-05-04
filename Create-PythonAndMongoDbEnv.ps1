@@ -9,11 +9,15 @@ LABEL version="0.0.1-beta"
 ENV container docker
 RUN echo "*** Build Image ***"
 RUN yum -y update && yum clean all
+RUN yum install bind-utils -y
+RUN dnf install glibc-langpack-de -y
 RUN yum install git -y
 RUN yum install -y python3
 RUN python3 -m pip install -U pip
 RUN python3 -m pip install pywinrm
 RUN python3 -m pip install pymongo
+RUN python3 -m pip install pandas
+RUN python3 -m pip install html2text
 RUN mkdir /home/scripts/
 COPY get-mongodbs.py /home/scripts/
 COPY py-listener.py /home/scripts/
@@ -131,27 +135,41 @@ function New-PythonHostImage{
         [Parameter(Mandatory=$true)]
         [String] $ContentName
     )
-    if(Test-Path "D:\docker"){
-        New-Dockerfile -Location "D:\docker\$($Name)" -content $ContentName
+    $function = $($MyInvocation.MyCommand.Name)
+    Write-Verbose "Running $function"
+    if($IsWindows){
+        if(Test-Path "D:\docker"){
+            New-Dockerfile -Location "D:\docker\$($Name)" -content $ContentName
+        }
+        if(Test-Path "D:\docker\$($Name)"){
+            Set-Location "D:\docker\$($Name)"; docker build -f "D:\docker\$($Name)\dockerfile" -t "$($Name):1.0.0" .
+        }
+    }else{
+        $location = "/Users/Tinu/git/github.com/docker-example/"
+        if(Test-Path $location){
+            New-Dockerfile -Location "$($location)/$($Name)" -content $ContentName
+        }
+        if(Test-Path "$($location)/$($Name)"){
+            Set-Location "$($location)/$($Name)"; docker build -f "$($location)/$($Name)/dockerfile" -t "$($Name):1.0.0" .
+        }
     }
-    if(Test-Path "D:\docker\$($Name)"){
-        Set-Location "D:\docker\$($Name)"; docker build -f "D:\docker\$($Name)\dockerfile" -t "$($Name):1.0.0" .
-    }
+    
 }
 
+<#
+
+# Download a MongoDB-Image and create a new MongoDB-Container
 New-MongoDBContainer -ContainerName mongodb -ImageName mongo
-New-PythonHostImage -Name pyhost -ContentName $pyhost
+
+# Create a new Python3-Image from a dockerfile
+New-PythonHostImage -Name pyhost -ContentName $pyhost -Verbose
 
 # New PythonHost-Container1
-docker run -it --hostname pyhost1 --name pyhost1 -d pyhost:1.0.0
-$container = docker inspect pyhost1
-$object = $container | ConvertFrom-Json
-$object | Select-Object Name, @{l="IPAddress";e={$object.NetworkSettings.IPAddress}}
+docker run -it -v fileshare:/shared-volume --network custom --hostname pyhost1 --name pyhost1 -d pyhost:1.0.0
 
 # New PythonHost-Container2
-docker run -it --hostname pyhost2 --name pyhost2 -d pyhost:1.0.0
-$container = docker inspect pyhost2
-$object = $container | ConvertFrom-Json
-$object | Select-Object Name, @{l="IPAddress";e={$object.NetworkSettings.IPAddress}}
+docker run -it -v fileshare:/shared-volume --network custom --hostname pyhost2 --name pyhost2 -d pyhost:1.0.0
 
 docker ps -s
+
+#>

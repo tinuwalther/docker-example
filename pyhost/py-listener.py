@@ -171,24 +171,33 @@ def start(HOST, PORT, connections):
         data = covidnewsreader('https://www.covid19.admin.ch/de/overview?ovTime=total', '### Laborbestätigte Fälle', '### Laborbestätigte Hospitalisationen', False, False)
         for line in data:
           if(line is not None):
-              Datum      = (re.findall('\w+\:\s\d{2}\.\d{2}\.\d{4}',line)[0]).replace('Stand: ','')
-              Fälle      = int((re.findall('[A-Z][a-z]+\|\s\d{2,}',line)[0]).replace('Vortag| ',''))
-              TotalFälle = int(((re.findall('Total seit 24.02.2020+\|\s\d{1,}\s\d{1,}',line)[0]).split('| ')[1]).replace(' ',''))
-              break
-        
+            Datum  = (re.findall('\w+\:\s\d{2}\.\d{2}\.\d{4}',line)[0]).replace('Stand: ','')
+            if re.search('Freitag',line):
+                Fälle  = int((re.findall('[A-Z][a-z]+\|\s\d{2,}',line)[0]).replace('Freitag| ',''))
+            else:
+                Fälle  = int((re.findall('[A-Z][a-z]+\|\s\d{2,}',line)[0]).replace('Vortag| ',''))
+            TotalFälle = int(((re.findall('Total seit 24.02.2020+\|\s\d{1,}\s\d{1,}',line)[0]).split('| ')[1]).replace(' ',''))
+            break
+
         data = covidnewsreader('https://www.covid19.admin.ch/de/overview?ovTime=total', '### Laborbestätigte Hospitalisationen', '### Laborbestätigte Todesfälle', False, False)
         for line in data:
           if(line is not None):
-              Hospitalisationen = int((re.findall('[A-Z][a-z]+\|\s\d{2,}',line)[0]).replace('Vortag| ',''))
-              TotalHosp         = int(((re.findall('Total seit 24.02.2020+\|\s\d{1,}\s\d{1,}',line)[0]).split('| ')[1]).replace(' ',''))
-              break
+            if re.search('Freitag',line):
+                Hospitalisationen = int((re.findall('[A-Z][a-z]+\|\s\d{2,}',line)[0]).replace('Freitag| ',''))                
+            else:
+                Hospitalisationen = int((re.findall('[A-Z][a-z]+\|\s\d{2,}',line)[0]).replace('Vortag| ',''))
+            TotalHosp         = int(((re.findall('Total seit 24.02.2020+\|\s\d{1,}\s\d{1,}',line)[0]).split('| ')[1]).replace(' ',''))
+            break
         
         data = covidnewsreader('https://www.covid19.admin.ch/de/overview?ovTime=total', '### Laborbestätigte Todesfälle', '### Tests und Anteil positive Tests', False, False)
         for line in data:
             if(line is not None):
-              Todesfälle = int((re.findall('[A-Z][a-z]+\|\s\d{1,}',line)[0]).replace('Vortag| ',''))
-              TotalDead  = int(((re.findall('Total seit 24.02.2020+\|\s\d{1,}',line)[0]).split('| ')[1]))
-              break
+              if re.search('Freitag',line):
+                  Todesfälle = int((re.findall('[A-Z][a-z]+\|\s\d{1,}',line)[0]).replace('Freitag| ',''))
+              else:
+                  Todesfälle = int((re.findall('[A-Z][a-z]+\|\s\d{1,}',line)[0]).replace('Vortag| ',''))
+              TotalDead  = int(((re.findall('Total seit 24.02.2020+\|\s\d{1,}\s\d{1,}',line)[0]).split('| ')[1]).replace(' ',''))
+            break
 
         ### Print data frame set as table
         locale.setlocale(locale.LC_ALL, 'de_CH.utf-8')
@@ -198,7 +207,14 @@ def start(HOST, PORT, connections):
           'Total seit 24.02.2020': [locale.format_string('%d', TotalFälle, 1), locale.format_string('%d', TotalHosp, 1), locale.format_string('%d', TotalDead, 1)]
         }
         table = pd.DataFrame(data = dict_data)
-        print('{0}{1}{2}'.format(colors.fg.green, table, colors.reset))
+
+        currentdate = datetime.strptime(datetime.strftime((datetime.now()), "%Y-%m-%d"), "%Y-%m-%d")
+        daybefore   = datetime.strptime(Datum, "%d.%m.%Y")
+        if (daybefore < currentdate):
+            print('{0}{1}{2}'.format(colors.fg.yellow, table, colors.reset))
+        else:
+            print('{0}{1}{2}'.format(colors.fg.green, table, colors.reset))
+
         print('\n{0}{1}\n{2}ENDE{2}\n{1}{3}'.format(colors.bold + colors.fg.blue, '-' * 68, ' ' * 32, colors.reset))
       elif re.search("wetter", recived):
         srfnewsreader('https://www.srf.ch/meteo/wetterbericht', '#  Wetterbericht','## Footer', False, False)

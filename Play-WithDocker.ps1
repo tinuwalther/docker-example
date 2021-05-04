@@ -73,13 +73,14 @@ if(-not($volume)){
 
 # <-- create container -->
 docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=yourStrong(!)Password' -p 1433:1433 -v sqldata:/var/opt/mssql --hostname mssqlsrv1 --name mssqlsrv1 --network custom -d mssql:2019-latest
-docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=yourStrong(!)Password' -p 1433:9433 -v sqldata:/var/opt/mssql --hostname mssqlsrv2 --name mssqlsrv2 --network custom -d mssql:2019-latest
+docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=yourStrong(!)Password' -p 1433:1433 -v sqldata:/var/opt/mssql --hostname mssqlsrv2 --name mssqlsrv2 --network custom -d mssql:2019-latest
 docker ps -a
 
 # <-- run sqlcmd on container -->
 docker exec -it mssqlsrv1 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'yourStrong(!)Password'
 EXEC sp_databases;
 
+# Install Extension mssql for Visual Studio Code
 
 # <-- start, stop, remove container -->
 docker start mssqlsrv1
@@ -111,6 +112,10 @@ docker run -it -p 27017:27017 -v mongodata:/data/db -v mongoconf:/data/configdb 
 
 Invoke-WebRequest -URI http://localhost:27017 | Select Status*,Content
 
+# Install Extension MongoDB for VS Code
+docker start mongodb1
+docker stop mongodb1
+docker rm mongodb1
 #endregion
 
 #region Build images from dockerfiles
@@ -225,15 +230,16 @@ docker exec -it pshost1 pwsh
 
 #region remove the container
 docker rm centos8
-docker rm pyhost1
+docker rm pyhost1 -f
+docker rm pyhost2 -f
 docker rm pshost1
 docker rm mssqlsrv1
 #endregion
 
 #region remove the image
 docker rmi entos8:1.0.0
-docker rmi pyhost1:1.0.0
-docker rmi pshost1:1.0.0
+docker rmi pyhost:1.0.0
+docker rmi pshost:1.0.0
 #endregion
 
 #region rename image
