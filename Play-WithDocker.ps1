@@ -68,16 +68,17 @@ $volume = foreach($item in (docker volume ls)){
     }
 }
 if(-not($volume)){
-    docker volume create sqldata
+    docker volume create sqldata1
 }
 
 # <-- create container -->
-docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=yourStrong(!)Password' -p 1433:1433 -v sqldata:/var/opt/mssql --hostname mssqlsrv1 --name mssqlsrv1 --network custom -d mssql:2019-latest
-docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=yourStrong(!)Password' -p 1433:1433 -v sqldata:/var/opt/mssql --hostname mssqlsrv2 --name mssqlsrv2 --network custom -d mssql:2019-latest
+docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=yourStrong(!)Password' -p 8433:1433 -v sqldata1:/var/opt/mssql --hostname mssqlsrv1 --name mssqlsrv1 --network custom -d mssql:2019-latest
+docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=yourStrong(!)Password' -p 9433:1433 -v sqldata:/var/opt/mssql --hostname mssqlsrv2 --name mssqlsrv2 --network custom -d mssql:2019-latest
 docker ps -a
 
 # <-- run sqlcmd on container -->
 docker exec -it mssqlsrv1 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'yourStrong(!)Password'
+docker exec -it mssqlsrv2 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'yourStrong(!)Password'
 EXEC sp_databases;
 
 # Install Extension mssql for Visual Studio Code
