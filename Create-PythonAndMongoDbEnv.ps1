@@ -70,7 +70,7 @@ function New-MongoDBContainer{
     }
 
     docker pull $ImageName
-    docker run -it -v mongodata:/data/db -v mongoconf:/data/configdb --name "$($ContainerName)1" --hostname "$($ContainerName)1" --network custom -d $ImageName
+    docker run -e TZ="Europe/Zurich" -it -p 27017:27017 -v mongodata:/data/db -v mongoconf:/data/configdb --name "$($ContainerName)1" --hostname "$($ContainerName)1" --network custom -d $ImageName
     $container = docker inspect $ContainerName
     $object = $container | ConvertFrom-Json
     $object | Select-Object Name, @{l="IPAddress";e={$object.NetworkSettings.IPAddress}}
@@ -165,10 +165,10 @@ New-MongoDBContainer -ContainerName mongodb -ImageName mongo
 New-PythonHostImage -Name pyhost -ContentName $pyhost -Verbose
 
 # New PythonHost-Container1
-docker run -it -v fileshare:/shared-volume --network custom --hostname pyhost1 --name pyhost1 -d pyhost:1.0.0
+docker run -e TZ="Europe/Zurich" -it -v fileshare:/shared-volume --network custom --hostname pyhost1 --name pyhost1 -d pyhost:1.0.0
 
 # New PythonHost-Container2
-docker run -it -v fileshare:/shared-volume --network custom --hostname pyhost2 --name pyhost2 -d pyhost:1.0.0
+docker run -e TZ="Europe/Zurich" -it -v fileshare:/shared-volume --network custom --hostname pyhost2 --name pyhost2 -d pyhost:1.0.0
 
 docker ps -s
 

@@ -26,8 +26,8 @@ if(-not($volume)){
 }
 
 # <-- create container -->
-docker run -it -v fileshare:/shared-volume --hostname alpine1 --name alpine1 -d alpine:latest
-docker run -it -v fileshare:/shared-volume --hostname pyalpine1 --name pyalpine1 -d pyalpine:latest
+docker run -e TZ="Europe/Zurich" -it -v fileshare:/shared-volume --hostname alpine1 --name alpine1 -d alpine:latest
+docker run -e TZ="Europe/Zurich" -it -v fileshare:/shared-volume --hostname pyalpine1 --name pyalpine1 -d pyalpine:latest
 docker ps -a
 
 # <-- run bash on container -->
@@ -68,12 +68,12 @@ $volume = foreach($item in (docker volume ls)){
     }
 }
 if(-not($volume)){
-    docker volume create sqldata1
+    docker volume create sqldata
 }
 
 # <-- create container -->
-docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=yourStrong(!)Password' -p 8433:1433 -v sqldata1:/var/opt/mssql --hostname mssqlsrv1 --name mssqlsrv1 --network custom -d mssql:2019-latest
-docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=yourStrong(!)Password' -p 9433:1433 -v sqldata:/var/opt/mssql --hostname mssqlsrv2 --name mssqlsrv2 --network custom -d mssql:2019-latest
+docker run -e TZ="Europe/Zurich" -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=yourStrong(!)Password' -p 8433:1433 -v sqldata:/var/opt/mssql --hostname mssqlsrv1 --name mssqlsrv1 --network custom -d mssql:2019-latest
+docker run -e TZ="Europe/Zurich" -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=yourStrong(!)Password' -p 9433:1433 -v sqldata:/var/opt/mssql --hostname mssqlsrv2 --name mssqlsrv2 --network custom -d mssql:2019-latest
 docker ps -a
 
 # <-- run sqlcmd on container -->
@@ -86,7 +86,7 @@ EXEC sp_databases;
 # <-- start, stop, remove container -->
 docker start mssqlsrv1
 docker stop mssqlsrv1
-docker rm mssqlsrv1
+docker rm mssqlsrv1 -f
 
 #endregion
 
@@ -109,7 +109,7 @@ if(-not($volume)){
 }
 
 docker pull mongo
-docker run -it -p 27017:27017 -v mongodata:/data/db -v mongoconf:/data/configdb --name mongodb1 --hostname mongodb1 --network custom -d mongo
+docker run -e TZ="Europe/Zurich" -it -p 27017:27017 -v mongodata:/data/db -v mongoconf:/data/configdb --name mongodb1 --hostname mongodb1 --network custom -d mongo
 
 Invoke-WebRequest -URI http://localhost:27017 | Select Status*,Content
 
@@ -191,14 +191,16 @@ if(-not($volume)){
     docker volume create fileshare
 }
 
-docker run -v fileshare:/shared-volume --hostname centos8 --name centos8  -it centos8:1.0.0 /bin/bash
-docker run -v fileshare:/shared-volume --hostname pyhost1 --name pyhost1  -it pyhost:1.0.0  /bin/bash
-docker run -v fileshare:/shared-volume --hostname pshost1 --name pshost1  -it pshost:1.0.0  pwsh
+docker run -e TZ="Europe/Zurich" -v fileshare:/shared-volume --hostname centos8 --name centos8  -it centos8:1.0.0 /bin/bash
+docker run -e TZ="Europe/Zurich" -v fileshare:/shared-volume --hostname pyhost1 --name pyhost1  -it pyhost:1.0.0  /bin/bash
+docker run -e TZ="Europe/Zurich" -v fileshare:/shared-volume --hostname pshost1 --name pshost1  -it pshost:1.0.0  pwsh
 
 # create container with user-defined-network-bridge
-docker run -it -v fileshare:/shared-volume --network custom --hostname pyhost1 --name pyhost1 -d pyhost:1.0.0
-docker run -it -v fileshare:/shared-volume --network custom --hostname pyhost2 --name pyhost2 -d pyhost:1.0.0
-docker run -it -v fileshare:/shared-volume --network custom --hostname pshost1 --name pshost1 -d pshost:1.0.0
+docker run -e TZ="Europe/Zurich" -it -v fileshare:/shared-volume --network custom --hostname pyhost1 --name pyhost1 -d pyhost:1.0.0
+docker run -e TZ="Europe/Zurich" -it -v fileshare:/shared-volume --network custom --hostname pyhost2 --name pyhost2 -d pyhost:1.0.0
+docker run -e TZ="Europe/Zurich" -it -v fileshare:/shared-volume --network custom --hostname pshost1 --name pshost1 -d pshost:1.0.0
+
+docker run -e TZ="Europe/Zurich" -it -v mongodata:/data/db -v mongoconf:/data/configdb --name mongodb1 --hostname mongodb1 --network custom -d mongo
 
 docker network inspect custom
 
@@ -233,6 +235,7 @@ docker exec -it pshost1 pwsh
 docker rm centos8
 docker rm pyhost1 -f
 docker rm pyhost2 -f
+docker rm mongodb1 -f
 docker rm pshost1
 docker rm mssqlsrv1
 #endregion
