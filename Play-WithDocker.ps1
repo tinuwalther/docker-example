@@ -131,7 +131,7 @@ Set-Location "$Location\pshost"; docker build -f "D:\docker\pshost\dockerfile" -
 # For Mac OS
 $Location = "/Users/Tinu/git/github.com/docker-example"
 Set-Location "$Location/pyhost"; docker build -f "$Location/pyhost/dockerfile" -t pyhost:1.0.0 .
-Set-Location "$Location/pshost"; docker build -f "$Location/pyhost/dockerfile" -t pshost:1.0.0 .
+Set-Location "$Location/pshost"; docker build -f "$Location/pshost/Dockerfile" -t pshost:1.0.0 .
 
 docker images -a
 #endregion
