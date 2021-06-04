@@ -90,6 +90,18 @@ docker rm mssqlsrv1 -f
 
 #endregion
 
+#region universal
+$volume = foreach($item in (docker volume ls)){
+    if($item -match 'local\s+psudata$'){
+        $true; break
+    }
+}
+if(-not($volume)){
+    docker volume create psudata
+}
+docker run -e TZ="Europe/Zurich" -p 5000:5000 -v psudata:/data --hostname psuhost1 --name psuhost1 --network custom -d psuhost:1.0.0
+#emdregion
+
 #region mongodb
 $volume = foreach($item in (docker volume ls)){
     if($item -match 'local\s+mongodata$'){
@@ -132,6 +144,7 @@ Set-Location "$Location\pshost"; docker build -f "D:\docker\pshost\dockerfile" -
 $Location = "/Users/Tinu/git/github.com/docker-example"
 Set-Location "$Location/pyhost"; docker build -f "$Location/pyhost/dockerfile" -t pyhost:1.0.0 .
 Set-Location "$Location/pshost"; docker build -f "$Location/pshost/Dockerfile" -t pshost:1.0.0 .
+Set-Location "$Location/psuhost"; docker build -f "$Location/psuhost/dockerfile" -t psuhost:1.0.0 .
 
 docker images -a
 #endregion
