@@ -9,6 +9,12 @@ mssql        2019-latest   62c72d863950   4 weeks ago   1.49GB
 mongo        latest        f03be0dc25f8   5 weeks ago   448MB
 
 #region alpine
+docker pull grafana/grafana
+docker tag grafana/grafana grafana:latest
+docker rmi grafana/grafana
+
+docker run -d --name=grafana -p 3000:3000 grafana
+admin/grafana
 
 # <-- download image -->
 docker pull alpine
