@@ -1,3 +1,30 @@
+#region my environment
+
+#network
+docker network create custom
+docker network ls
+docker network inspect custom
+
+#volumes
+docker volume create sqldata
+docker volume create mongodata
+docker volume create mongoconf
+docker volume create fileshare
+
+docker pull mcr.microsoft.com/mssql/server:2019-latest
+docker tag mcr.microsoft.com/mssql/server:2019-latest mssql:2019-latest
+docker rmi mcr.microsoft.com/mssql/server:2019-latest
+docker pull mongo
+docker images -a
+
+#containers
+docker run -e TZ="Europe/Zurich" -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=yourStrong(!)Password' -p 8433:1433 -v sqldata:/var/opt/mssql --hostname mssqlsrv1 --name mssqlsrv1 --network custom -d mssql:2019-latest
+docker run -e TZ="Europe/Zurich" -it -p 27017:27017 -v mongodata:/data/db -v mongoconf:/data/configdb --name mongodb1 --hostname mongodb1 --network custom -d mongo
+docker ps -a
+
+#endregion
+
+
 #region Linux Container
 docker images -a
 
@@ -106,7 +133,7 @@ if(-not($volume)){
     docker volume create psudata
 }
 docker run -e TZ="Europe/Zurich" -p 5000:5000 -v psudata:/data --hostname psuhost1 --name psuhost1 --network custom -d psuhost:1.0.0
-#emdregion
+#endregion
 
 #region mongodb
 $volume = foreach($item in (docker volume ls)){
