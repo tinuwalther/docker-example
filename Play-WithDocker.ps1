@@ -7,6 +7,7 @@ docker network inspect custom
 
 #volumes
 docker volume create sqldata
+docker volume create mysqldata
 docker volume create mongodata
 docker volume create mongoconf
 docker volume create fileshare
@@ -14,14 +15,15 @@ docker volume create fileshare
 docker pull mcr.microsoft.com/mssql/server:2019-latest
 docker tag mcr.microsoft.com/mssql/server:2019-latest mssql:2019-latest
 docker rmi mcr.microsoft.com/mssql/server:2019-latest
+docker pull mysql:latest
 docker pull mongo
 docker images -a
 
 #containers
 docker run -e TZ="Europe/Zurich" -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=yourStrong(!)Password' -p 8433:1433 -v sqldata:/var/opt/mssql --hostname mssqlsrv1 --name mssqlsrv1 --network custom -d mssql:2019-latest
+docker run -e TZ="Europe/Zurich" -e MYSQL_ROOT_PASSWORD=my-secret-pw -p 3306:3306 -v mysqldata:/var/lib/mysql --hostname mysqlsrv1 --name mysqlsrv1 --network custom -d mysql:latest
 docker run -e TZ="Europe/Zurich" -it -p 27017:27017 -v mongodata:/data/db -v mongoconf:/data/configdb --name mongodb1 --hostname mongodb1 --network custom -d mongo
 docker ps -a
-
 #endregion
 
 
