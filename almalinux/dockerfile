@@ -1,0 +1,28 @@
+FROM almalinux:latest
+LABEL os="almalinux"
+LABEL author="Martin Walther Foto & IT"
+LABEL content="Only the OS"
+LABEL release-date="2022-12-24"
+LABEL version="0.0.1-beta"
+ENV container docker
+
+RUN echo "*** Build Image ***"
+RUN echo "> Install Python 3.7"
+RUN dnf update -y
+RUN dnf makecache --refresh
+RUN dnf -y install python3-pip
+RUN python3 -m pip install --upgrade pip
+RUN dnf upgrade --refresh
+RUN python3 -m pip install six psutil lxml pyopenssl
+
+RUN echo "> Install PowerShell 7"
+RUN rpm --import https://packages.microsoft.com/keys/microsoft.asc
+RUN rpm -Uvh https://packages.microsoft.com/config/centos/8/packages-microsoft-prod.rpm
+RUN dnf install powershell -y
+
+COPY profile.ps1 /opt/microsoft/powershell/7
+RUN pwsh -Command "& {Set-PSRepository -Name PSGallery -InstallationPolicy Trusted -SourceLocation https://www.powershellgallery.com/api/v2}"
+RUN pwsh -Command "& {Install-Module -Name VMware.PowerCLI}"
+RUN pwsh -Command "& {Install-Module -Name PSNetTools}"
+RUN mkdir /data
+RUN echo "*** Build finished ***"
