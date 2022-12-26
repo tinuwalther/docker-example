@@ -28,7 +28,8 @@ RUN apt-get install powershell -y
 
 COPY profile.ps1 /opt/microsoft/powershell/7
 RUN pwsh -Command "& {Set-PSRepository -Name PSGallery -InstallationPolicy Trusted -SourceLocation https://www.powershellgallery.com/api/v2}"
-RUN pwsh -Command "& {Install-Module -Name VMware.PowerCLI}"
-RUN pwsh -Command "& {Install-Module -Name PSNetTools}"
+RUN pwsh -Command "& {Install-Module -Name PSNetTools, VMware.PowerCLI}"
+RUN pwsh -Command "& {$null = Set-PowerCLIConfiguration -Scope User -ParticipateInCEIP $true -Confirm:$false}"
+RUN pwsh -Command "& {$null = Set-PowerCLIConfiguration -PythonPath '/usr/local/bin/python3.7'  -Scope User -Confirm:$false}"
 RUN mkdir /data
 RUN echo "*** Build finished ***"
